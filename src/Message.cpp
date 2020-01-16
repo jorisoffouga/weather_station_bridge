@@ -25,8 +25,10 @@ message_t *Message::Parse(uint8_t *data, uint8_t len)
 	if(!msg)
 		return nullptr;
 
-	if(data[0] != SOF)
+	if(data[0] != SOF){
+		free(msg);
 		return nullptr;
+	}
 
 	msg->len = data[1];
 	msg->type = static_cast<sensor_type_t>(data[2]);
