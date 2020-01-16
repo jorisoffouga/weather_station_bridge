@@ -10,6 +10,11 @@
 #include <unistd.h>
 #include <cstring>
 
+#define INTERFACE_NAME "local.WeatherMonitor.WeatherMonitor"
+#define PATH "/"
+#define BUS_NAME "org.weather.monitor"
+#define METHOD "setWeatherInfos"
+
 Bridge::Bridge(std::string device)
 {
 	m_device = device;
@@ -23,6 +28,7 @@ Bridge::~Bridge()
 
 int Bridge::Init()
 {
+	int ret = 0;
 	m_serial = serial_new();
 
 	if(m_serial == NULL)
@@ -32,7 +38,7 @@ int Bridge::Init()
 	}
 
 	if (serial_open(m_serial, m_device.c_str(), 115200) < 0){
-		std::cerr << "Cannot open " << m_device;
+		std::cerr << "Cannot open " << m_device << std::endl;
 		std::cerr << serial_errmsg(m_serial) << std::endl;
 		return -1;
 	}
@@ -40,8 +46,38 @@ int Bridge::Init()
 	std::cout << "Open Successful " << m_device << std::endl ;
 
 	serial_flush(m_serial);
+
+	ret = sd_bus_open_user(&m_bus);
+
+	if (ret < 0) {
+		std::cerr << "Failed to connect to system bus: " << std::strerror(-ret) << std::endl;
+		return -1;
+	}
+
 	return 1;
 
+}
+
+int Bridge::SendToDBus(message_t *msg)
+{
+	sd_bus_error error = SD_BUS_ERROR_NULL;
+	sd_bus_message *reply = nullptr;
+	int ret;
+
+	ret = sd_bus_call_method(m_bus, BUS_NAME,
+				PATH, INTERFACE_NAME,
+				METHOD,
+				&error,
+				&reply,
+				"si",
+				m_msg.toString(msg).c_str(), static_cast<int>(msg->type));
+
+	if (ret < 0) {
+		std::cerr << "Failed to issue method call: " << error.message << std::endl;
+		return -1;
+	}
+
+	return 1;
 }
 
 void Bridge::Run()
@@ -55,7 +91,11 @@ void Bridge::Run()
 			if (l_count >= 3) {
 				message_t *msg = m_msg.Parse(m_buf, count);
 				if (msg != nullptr) {
-					m_msg.toString(msg);
+					std::cout << m_msg.toString(static_cast<sensor_type_t>(msg->type))
+							<< ": "<< m_msg.toString(msg) << std::endl;
+					if (SendToDBus(msg) < 0) {
+						std::cerr << "Failed to send dbus message" << std::endl;
+					}
 					free(msg);
 				}
 				memset(m_buf, 0, sizeof(m_buf));

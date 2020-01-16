@@ -26,4 +26,4 @@ file(
 
 add_executable(${PROJECT_NAME} ${weather_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} periphery pthread)
+target_link_libraries(${PROJECT_NAME} periphery pthread systemd)

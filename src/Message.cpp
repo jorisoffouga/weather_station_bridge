@@ -40,24 +40,22 @@ message_t *Message::Parse(uint8_t *data, uint8_t len)
 
 }
 
-void Message::toString(message_t *message)
+std::string Message::toString(message_t *message)
 {
-	std::string type;
 
-	switch (message->type) {
+	return std::to_string(message->data[0]) + "." + std::to_string(message->data[1]);
+}
+
+std::string Message::toString(sensor_type_t type)
+{
+	switch (type) {
 		case TEMP:
-			type = "Temperature";
-			break;
+			return "Temperature";
 		case PRESS:
-			type = "Pressure";
-			break;
+			return "Pressure";
 		case HUMIDITY:
-			type = "Humidity";
-			break;
+			return "Humidity";
 		default:
-			break;
+			return "Unknown";
 	}
-
-	std::cout << type << ": " << std::to_string(message->data[0]) << "." <<
-			std::to_string(message->data[1])<< std::endl;
 }
