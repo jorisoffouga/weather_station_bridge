@@ -2,6 +2,10 @@ cmake_minimum_required (VERSION 2.6)
 
 project (weather_station_bridge)
 
+include(FindPkgConfig)
+
+pkg_check_modules(SYSTEMD libsystemd>=211 REQUIRED)
+
 # cpp requirements
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
