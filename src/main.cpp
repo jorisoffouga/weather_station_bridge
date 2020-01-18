@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unistd.h>
+#include <thread>
 #include <signal.h>
 #include "Bridge.hpp"
 
@@ -13,7 +14,6 @@ static void cleanThread(int iSignal)
 
 int main(int argc, char **argv)
 {
-
 	Bridge bridge("/dev/ttyUSB0");
 
 	if (bridge.Init() < 0){

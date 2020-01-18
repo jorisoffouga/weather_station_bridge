@@ -9,7 +9,6 @@
 #define BRIDGE_HPP_
 
 #include <string>
-#include <thread>
 #include <c-periphery/serial.h>
 #include <systemd/sd-bus.h>
 #include "Message.hpp"
