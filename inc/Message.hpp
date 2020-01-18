@@ -38,8 +38,8 @@ typedef struct message_s{
 
 class Message {
 public:
-	Message();
-	virtual ~Message();
+	Message(){};
+	~Message(){};
 	message_t *Parse(uint8_t *data, uint8_t len);
 	std::string toString(message_t *message);
 	std::string toString(sensor_type_t type);
