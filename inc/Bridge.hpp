@@ -1,5 +1,5 @@
 /*
- * bridge.hpp
+ * Bridge.hpp
  *
  *  Created on: 15 janv. 2020
  *      Author: Joris Offouga
@@ -8,9 +8,9 @@
 #ifndef BRIDGE_HPP_
 #define BRIDGE_HPP_
 
-#include <string>
 #include <c-periphery/serial.h>
 #include <systemd/sd-bus.h>
+#include <string>
 #include "Message.hpp"
 
 class Bridge
@@ -31,4 +31,4 @@ private:
 };
 
 
-#endif /* INC_BRIDGE_HPP_ */
+#endif /* BRIDGE_HPP_ */

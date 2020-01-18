@@ -1,5 +1,5 @@
 /*
- * bridge.cpp
+ * Bridge.cpp
  *
  *  Created on: 15 janv. 2020
  *      Author: Joris Offouga
@@ -18,6 +18,7 @@
 Bridge::Bridge(std::string device)
 {
 	m_device = device;
+	m_serial = nullptr;
 }
 
 Bridge::~Bridge()
@@ -29,6 +30,7 @@ Bridge::~Bridge()
 int Bridge::Init()
 {
 	int ret = 0;
+
 	m_serial = serial_new();
 
 	if(m_serial == NULL)
@@ -55,7 +57,6 @@ int Bridge::Init()
 	}
 
 	return 1;
-
 }
 
 int Bridge::SendToDBus(message_t *msg)
