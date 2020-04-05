@@ -16,11 +16,11 @@
 class Bridge
 {
 public:
-	Bridge(std::string device);
+	Bridge();
 	~Bridge();
-	int Init();
-	void Run();
-	int SendToDBus(message_t *msg);
+	int init(std::string &device);
+	void run();
+	int sendToDBus(message_t *msg);
 
 private:
 	std::string m_device;
@@ -28,6 +28,7 @@ private:
 	uint8_t m_buf[255];
 	Message m_msg;
 	sd_bus *m_bus = nullptr;
+	bool is_open = false;
 };
 
 

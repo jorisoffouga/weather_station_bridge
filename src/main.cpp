@@ -4,36 +4,50 @@
 #include <signal.h>
 #include "Bridge.hpp"
 
-static bool stopped = false;
-
-static void cleanThread(int iSignal)
+static void usage(void)
 {
-	std::cout << "Kill signal detected " << iSignal << std::endl;
-	stopped = true;
+	fprintf(stdout, "wheather-station-bridge -p <tty> \n");
+	fprintf(stdout,
+			" Available OPTIONS\n"
+			" -h : print help and exit\n"
+			" -p : tty \n"
+	);
+	fprintf(stdout, "wheather-station-bridge -p /dev/ttyUBS0 \n");
 }
 
 int main(int argc, char **argv)
 {
-	Bridge bridge("/dev/ttyUSB0");
+	int c;
+	std::string device;
 
-	if (bridge.Init() < 0){
+	while ((c = getopt(argc, argv, "p:h")) != EOF) {
+		switch (c) {
+		case 'p':
+			device.append(optarg);
+			break;
+		case 'h':
+			usage();
+			exit(EXIT_SUCCESS);
+		default:
+			usage();
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	if (device.empty()) {
+		std::cerr << "Empty tty interface provides " << std::endl;
+		usage();
+		exit(EXIT_FAILURE);
+	}
+
+	Bridge bridge;
+
+	if (bridge.init(device) < 0){
 		std::cerr << "Init Failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	signal(SIGINT,  cleanThread);
-	signal(SIGHUP,  cleanThread);
-	signal(SIGTERM, cleanThread);
-	signal(SIGKILL, cleanThread);
-	signal(SIGQUIT, cleanThread);
+	bridge.run();
 
-	std::thread l_thread(&Bridge::Run, &bridge);
-
-	while(stopped == false)
-	{
-		sleep(1);
-	}
-
-	l_thread.join();
-	return 0;
+	exit(EXIT_SUCCESS);
 }

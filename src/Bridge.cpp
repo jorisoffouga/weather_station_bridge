@@ -15,19 +15,20 @@
 #define BUS_NAME "org.weather.monitor"
 #define METHOD "setWeatherInfos"
 
-Bridge::Bridge(std::string device)
+Bridge::Bridge()
 {
-	m_device = device;
 	m_serial = nullptr;
 }
 
 Bridge::~Bridge()
 {
-	serial_close(m_serial);
-	serial_free(m_serial);
+	if (is_open) {
+		serial_close(m_serial);
+		serial_free(m_serial);
+	}
 }
 
-int Bridge::Init()
+int Bridge::init(std::string &device)
 {
 	int ret = 0;
 
@@ -39,13 +40,14 @@ int Bridge::Init()
 		return -1;
 	}
 
-	if (serial_open(m_serial, m_device.c_str(), 115200) < 0){
-		std::cerr << "Cannot open " << m_device << std::endl;
+	if (serial_open(m_serial, device.c_str(), 115200) < 0){
+		std::cerr << "Cannot open " << device << std::endl;
 		std::cerr << serial_errmsg(m_serial) << std::endl;
 		return -1;
 	}
 
-	std::cout << "Open Successful " << m_device << std::endl ;
+	std::cout << "Open Successful " << device << std::endl ;
+	is_open = true;
 
 	serial_flush(m_serial);
 
@@ -59,19 +61,19 @@ int Bridge::Init()
 	return 1;
 }
 
-int Bridge::SendToDBus(message_t *msg)
+int Bridge::sendToDBus(message_t *msg)
 {
 	sd_bus_error error = SD_BUS_ERROR_NULL;
 	sd_bus_message *reply = nullptr;
 	int ret;
 
 	ret = sd_bus_call_method(m_bus, BUS_NAME,
-				PATH, INTERFACE_NAME,
-				METHOD,
-				&error,
-				&reply,
-				"si",
-				m_msg.toString(msg).c_str(), static_cast<int>(msg->type));
+			PATH, INTERFACE_NAME,
+			METHOD,
+			&error,
+			&reply,
+			"si",
+			m_msg.toString(msg).c_str(), static_cast<int>(msg->type));
 
 	if (ret < 0) {
 		std::cerr << "Failed to issue method call: " << error.message << std::endl;
@@ -81,7 +83,7 @@ int Bridge::SendToDBus(message_t *msg)
 	return 1;
 }
 
-void Bridge::Run()
+void Bridge::run()
 {
 	unsigned int count = 0;
 	int l_count = 0;
@@ -93,8 +95,8 @@ void Bridge::Run()
 				message_t *msg = m_msg.Parse(m_buf, count);
 				if (msg != nullptr) {
 					std::cout << m_msg.toString(static_cast<sensor_type_t>(msg->type))
-							<< ": "<< m_msg.toString(msg) << std::endl;
-					if (SendToDBus(msg) < 0) {
+									<< ": "<< m_msg.toString(msg) << std::endl;
+					if (sendToDBus(msg) < 0) {
 						std::cerr << "Failed to send dbus message" << std::endl;
 					}
 					free(msg);
